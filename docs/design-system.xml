@@ -1,0 +1,389 @@
+You are building an Apple Design Award winning mobile app or Google Play Best of mobile app for 2035. This is a premium Personal Finance app. Every pixel matters. Optimized for touch. No desktop-first logic. No generic inputs.
+
+<app_identity>
+Name: ExpenseFlow
+Tagline: "Track Smarter. Spend Better."
+Core Utility: A daily expense tracker that solves the universal pain of inconsistent spending awareness. Users often lose track of where their money goes — ExpenseFlow eliminates that blind spot by making expense logging fast (under 5 seconds), intuitive, and genuinely enjoyable through mature gamification mechanics.
+Target User: Millennials & Gen-Z (ages 18–35) — young professionals, freelancers, and students who want to take control of their personal finances without the complexity of traditional budgeting tools.
+Vibe: Mature Gamification — Rewarding, Witty & Sophisticated. Think Duolingo's engagement loop meets Monzo's visual elegance. Achievement badges are minimalist, streak counters use bold typography, micro-celebrations are subtle (smooth checkmarks, soft glows — no confetti explosions). Smart copywriting that feels like a personal finance coach, not a children's game. Example tone: "Nice! Budget on track this week 👏" instead of "YEAY you're amazing!! 🎊🎊🎊"
+</app_identity>
+
+<design_philosophy>
+ExpenseFlow follows a "Sophisticated Play" design philosophy — where every interaction feels rewarding without being childish. The UX is built around three pillars:
+
+1. SPEED-FIRST INPUT: The primary action (logging an expense) must be completable in under 5 seconds. One-thumb operation. No unnecessary steps. The FAB (Floating Action Button) is always within thumb reach.
+
+2. VISUAL MOTIVATION: Financial data is inherently boring — we make it beautiful. Progress bars animate smoothly, charts are colorful and satisfying, and achievements feel earned. Every number tells a visual story.
+
+3. FRICTIONLESS HABIT FORMATION: Streak mechanics, gentle daily nudges, and achievement unlocks create a positive feedback loop that turns expense tracking from a chore into a micro-habit. The app rewards consistency, not perfection.
+
+All layouts respect the Thumb Zone principle — critical actions live in the bottom 60% of the screen. Navigation is always one-handed. No reaching to the top-left for back buttons. Safe area insets are respected on all devices (notch, Dynamic Island, home indicator).
+</design_philosophy>
+
+<color_system>
+Forget web palettes. This is a mobile-native UI color system designed for Light Mode:
+
+- Canvas (Background): #F8FAFB — Soft off-white, gentle on eyes during extended use, avoids the harshness of pure white
+- Surface (Cards/Sheets): #FFFFFF — Pure white for elevated surfaces, creating subtle depth hierarchy
+- Emerald Primary: #10B981 — Growth, money, progress. Used ONLY for the main CTA on each screen (FAB, primary button, active tab indicator)
+- Amber Accent: #F59E0B — Energetic highlight for badges, streaks, achievements, and secondary actions
+- Text Primary: #1A202C — Deep charcoal for maximum readability, never pure black
+- Text Secondary: #64748B — Muted slate for labels, captions, and supporting text
+- Danger / Over Budget: #EF4444 — Clear but not aggressive red for alerts and overspend warnings
+- Success / On Track: #22C55E — Bright green for achievements, completed goals, and positive states
+- Border / Divider: #E2E8F0 — Subtle separation lines, barely visible but structurally important
+
+Rule: High contrast for WCAG AA accessibility compliance. Primary Emerald is reserved exclusively for the single most important action on each screen. Amber is the reward color — users subconsciously associate it with achievements and progress.
+</color_system>
+
+<typography>
+Optimized for small screens and financial data readability:
+
+- Font Family: "Plus Jakarta Sans" — Geometric, modern, highly legible at all sizes. If unavailable, fallback to "Inter", then system sans-serif.
+- Headings (H1/H2): Plus Jakarta Sans Bold, 24px/20px, letter-spacing: -0.02em, tight leading (line-height: 1.2). Confident and commanding.
+- Body Text: Plus Jakarta Sans Regular, 16px minimum for readability. Line-height: 1.5. Never go below 14px for any readable text.
+- Financial Numbers/Amounts: Plus Jakarta Sans SemiBold, tabular-nums (monospaced digits for aligned columns). Large amounts displayed at 28-32px for visual impact on dashboard.
+- Labels & Captions: Plus Jakarta Sans Medium, 12px, letter-spacing: 0.02em, uppercase for tab bar labels. Text Secondary color.
+- Button Text: Plus Jakarta Sans SemiBold, 16px, centered, with adequate padding (vertical: 16px, horizontal: 24px).
+</typography>
+
+<gestures_and_haptics>
+The app feels alive under the glass:
+
+- Tap: Immediate visual response — buttons emit a soft glow effect radiating from the touch point. Glow color matches the button color (Emerald glow for primary, Amber glow for secondary). Duration: 150ms.
+- Long Press: Context menus for transaction items (Edit, Delete, Duplicate). Triggered at 500ms with a light haptic.
+- Swipe Right: Smooth gesture to navigate back (iOS-style edge swipe). Spring physics with damping: 20, stiffness: 90.
+- Swipe Left on List Item: Reveal quick-action buttons (Delete in red, Edit in blue).
+- Scroll: Deceleration rate "fast", buttery smooth with momentum. Pull-to-refresh with custom Emerald spinner animation.
+- Haptics:
+  - Light impact: Tab bar switches, toggle changes
+  - Medium impact: Expense saved successfully, budget goal reached
+  - Success notification pattern: Streak milestone, achievement unlocked
+  - Warning: Approaching budget limit, over-budget alert
+- Transitions: Screens slide from right (push/pop navigation). Modals rise from bottom as draggable bottom sheets with a pill-shaped drag handle. List items enter with staggered fade-in animation (50ms delay between items).
+</gestures_and_haptics>
+
+<splash_screen>
+The brand moment:
+
+- Background: Emerald Primary (#10B981) full screen
+- Center: ExpenseFlow logo — a minimalist, geometric money-flow icon in white
+- Animation: Logo fades in (0 → 1 opacity, 600ms ease-out), then subtly scales up (1.0 → 1.05, 400ms spring), followed by a smooth transition to the next screen
+- Bottom: "Made with ❤️ by tamadev © 2025" in white, 12px, Plus Jakarta Sans Medium, opacity 0.7
+- Duration: 1.5 seconds total before auto-navigating to Onboarding (first launch) or Biometric Lock screen (returning user)
+- No loading spinner. The splash IS the loading state.
+</splash_screen>
+
+<onboarding_flow>
+The first 60 seconds hook — 3 swipeable slides:
+
+Slide 1:
+- Visual: Clean illustration of a smartphone with floating expense cards organizing themselves — subtle float animation (translateY oscillation)
+- Headline: "Track Every Penny"
+- Subtext: "Log expenses in under 5 seconds. Fast, simple, satisfying."
+
+Slide 2:
+- Visual: Illustration of colorful bar charts growing upward with a small trophy icon
+- Headline: "See Where It Goes"
+- Subtext: "Beautiful insights that make your spending crystal clear."
+
+Slide 3:
+- Visual: Illustration of a streak counter with badge icons and a subtle glow
+- Headline: "Build Money Habits"
+- Subtext: "Earn streaks and achievements. Consistency has never been this fun."
+
+Interaction: Horizontal swipe with paging dots at bottom center. Each slide transitions with a smooth parallax effect (illustration moves slower than text).
+CTA: On the final slide, a large full-width Emerald button at the bottom: "Get Started →" with soft glow on press. Minimum height: 56px. Bottom safe area respected.
+Skip: Small "Skip" text link at top-right for returning users. Subtle, not distracting.
+</onboarding_flow>
+
+<login_register_screen>
+Clean, trustworthy, fast:
+
+- Layout: Top 40% — ExpenseFlow logo + tagline centered. Bottom 60% — auth options.
+- Primary Auth: Large "Continue with Google" button (white card style, Google logo, full width). Below it: "Continue with Apple" button (black card style, Apple logo, full width).
+- Divider: Subtle "or" divider line between OAuth and fallback.
+- Fallback: "Continue with Email" text button for users without Google/Apple.
+- After first login: Prompt to set up Biometric (Face ID / Fingerprint) with friendly copy: "Secure your finances with a glance 👁️" and a "Set Up Face ID" Emerald CTA button.
+- PIN Setup: Secondary option — "Prefer a PIN instead?" link below biometric setup. 6-digit PIN with large circular input indicators.
+- Legal: Tiny footer links — "Terms of Service" and "Privacy Policy" in Text Secondary color.
+- Animation: Auth buttons stagger in from bottom (100ms delay each). Logo has a subtle bounce on mount.
+</login_register_screen>
+
+<home_dashboard>
+The command center:
+
+Layout: Vertical scroll, single column, card-based design.
+
+Header:
+- Top-left: "Good morning, [Name] 👋" greeting (changes based on time of day)
+- Top-right: Notification bell icon with Amber dot badge for unread reminders
+- Below greeting: Current month label ("February 2025")
+
+Key Metrics Card (Hero Section):
+- Large card with soft shadow, border-radius: 20px, padding: 24px
+- Total spending this month: Large number (32px, SemiBold, Text Primary)
+- Remaining budget: Emerald if on track, Danger red if over
+- Circular progress ring: Animated on mount, shows percentage of budget used. Emerald fill, gray track. Smooth spring animation.
+
+Quick Stats Row:
+- 3 mini cards in a horizontal row: "Today", "This Week", "Top Category"
+- Each with icon, label, and amount. Subtle background tint.
+
+Streak Banner:
+- If active streak: Amber-tinted card with "🔥 15-day streak! Keep it up!" 
+- Tap to expand into Achievements screen.
+- If no streak: Encouraging nudge "Start your streak today!"
+
+Recent Transactions:
+- Section header "Recent" with "See All →" link
+- Last 5 transactions as clean list items: Category icon (left), merchant/note + date (center), amount (right, color-coded: red for expense)
+- Tap to view detail. Swipe left to delete.
+
+Navigation: Floating Action Button (FAB) — Emerald circle with white "+" icon, positioned bottom-center, slightly overlapping the tab bar. This is the Quick Add Expense trigger. Soft Emerald glow shadow beneath it.
+
+Visuals: Clean flat design with subtle shadows (elevation: 2). Cards have 20px border-radius. No gradients — solid colors with opacity variations for depth.
+</home_dashboard>
+
+<navigation_structure>
+<pattern>Bottom Tab Bar with center FAB</pattern>
+<items>
+1. Home (house icon) — Dashboard overview
+2. Stats (bar-chart icon) — Analytics & breakdown
+3. [+] FAB (center, elevated) — Quick Add Expense
+4. Goals (target icon) — Budget goals & achievements
+5. Profile (user icon) — Settings & account
+</items>
+<behavior>
+- Fixed bottom bar, 64px height, white background, top border: 1px solid #E2E8F0
+- Active state: Emerald filled icon + Emerald label text + small Emerald dot above icon
+- Inactive state: Outline icon in Text Secondary color + gray label
+- FAB: 56px Emerald circle, elevated above tab bar by 16px, white "+" icon, soft glow shadow
+- Haptic: Light impact on every tab switch
+- Animation: Icon morphs from outline to filled on selection (200ms)
+- Safe area: Bottom padding respects home indicator on modern devices
+</behavior>
+</navigation_structure>
+
+<feature_screens>
+Core functionality details:
+
+1. QUICK ADD EXPENSE (Modal Bottom Sheet):
+   - Triggered by center FAB tap. Slides up from bottom with drag handle.
+   - Amount Input: Large, centered number display (40px). Custom numeric keypad at bottom (calculator-style). Tap digits to build amount. Backspace icon to delete.
+   - Category Selector: Horizontally scrollable pill chips with emoji icons (🍔 Food, 🚗 Transport, 🛒 Shopping, 🎮 Entertainment, ☕ Coffee, 💊 Health, 📱 Bills, ✨ Other). Single tap to select.
+   - Note Field: Optional single-line text input with placeholder "Add a note..."
+   - Date: Defaults to "Today" with option to tap and change via date picker.
+   - CTA: Full-width Emerald button "Save Expense" at bottom. Glow effect on press.
+   - Success State: Button morphs into checkmark with haptic success feedback. Sheet auto-dismisses after 800ms.
+   - Design: Entire flow completable in under 5 seconds with one thumb. All touch targets ≥ 44x44px.
+
+2. STATISTICS & ANALYSIS SCREEN:
+   - Time Filter: Segmented control at top — "Week / Month / Year". Emerald underline indicator slides between options.
+   - Donut Chart: Large, animated donut chart showing spending by category. Each segment in a distinct color. Center shows total amount. Tap a segment to highlight and show category detail.
+   - Category Breakdown List: Below chart — each category as a row with: emoji icon, category name, amount, percentage bar (colored). Sorted by highest spend.
+   - Trend Line: Small sparkline showing daily spending trend over selected period. Emerald line with gradient fill below.
+   - Comparison Badge: "↓ 12% less than last month" or "↑ 8% more" with green/red color coding.
+   - All charts animate on mount with staggered entrance. Smooth spring physics.
+
+3. BUDGET GOALS SCREEN:
+   - Monthly Budget Card: Hero card showing total monthly budget set by user. Circular progress ring (Emerald if under 80%, Amber if 80-100%, Danger red if over).
+   - Category Budgets: List of per-category budgets. Each with: emoji, name, horizontal progress bar, "Rp 450K / Rp 600K" text. Bar fills with Emerald, transitions to Amber at 80%, red at 100%.
+   - Add/Edit Budget: Bottom sheet with amount input + category selector.
+   - Nudge Cards: Smart alerts — "⚠️ Food budget is 90% used and it's only the 20th!" in a warm Amber-tinted card.
+
+4. ACHIEVEMENTS & STREAKS SCREEN:
+   - Streak Counter: Large, bold number with "🔥" icon. "15 Days" in 40px Bold. Subtitle: "Your longest: 32 days". Subtle ambient glow animation.
+   - Badge Grid: 3-column grid of achievement badges. Earned badges in full color with subtle shadow. Locked badges in grayscale with lock icon overlay.
+   - Badge Examples:
+     - "First Step" — Log your first expense
+     - "Week Warrior" — 7-day streak
+     - "Budget Master" — Stay under budget for a full month
+     - "Century Club" — 100 expenses logged
+     - "Analyzer" — Check stats 10 times
+   - Tap badge: Expand into detail card with achievement name, description, date earned, and a motivational quote.
+   - Progress: For locked badges, show progress bar "3/7 days" toward unlock.
+
+5. TRANSACTION HISTORY SCREEN:
+   - Grouped by date: "Today", "Yesterday", "Feb 8, 2025", etc.
+   - Each transaction row: Category emoji (left), Note/Merchant + time (center), Amount in bold (right).
+   - Filter Bar: Horizontally scrollable category filter pills at top. "All" selected by default.
+   - Search: Collapsible search bar with magnifying glass icon. Filters transactions in real-time.
+   - Swipe Actions: Swipe left reveals "Edit" (blue) and "Delete" (red) action buttons.
+   - Empty State: Friendly illustration + "No expenses yet today. Tap + to start!" with arrow pointing to FAB.
+
+6. PROFILE & SETTINGS SCREEN:
+   - Profile Header: User avatar (from Google/Apple account), name, email. Tap to edit display name.
+   - Settings Sections (grouped list):
+     - 💰 Currency: Select primary currency (default: IDR)
+     - 🔔 Daily Reminder: Toggle on/off + time picker (default: 9:00 PM)
+     - 🔒 Security: Biometric toggle, Change PIN
+     - 🌙 Appearance: Light mode (currently only Light, future Dark mode toggle)
+     - 📤 Export Data: Export as CSV or PDF
+     - 📊 Reset Statistics: With confirmation dialog
+     - ℹ️ About ExpenseFlow: Version, credits, licenses
+   - About Page: ExpenseFlow logo, version number, "Made with ❤️ by tamadev © 2025", and links to Terms & Privacy.
+
+Detail: Every clickable element is at least 44x44px (Apple HIG touch target standard). All list items have 56px minimum row height. Interactive elements have visible active states (glow feedback).
+</feature_screens>
+
+<components_library>
+Reusable atoms for design consistency:
+
+- Cards: border-radius: 20px, shadow: 0 2px 8px rgba(0,0,0,0.06), padding: 20px, background: #FFFFFF. Active state: subtle glow overlay.
+- Inputs: Floating label style. Border: 1.5px solid #E2E8F0, border-radius: 12px, height: 56px. Focus state: Emerald border + Emerald floating label. Error state: Danger red border + red helper text.
+- Buttons (Primary): Emerald background, white text, border-radius: 16px, height: 56px, full-width. Press: soft Emerald glow outward. Disabled: 40% opacity.
+- Buttons (Secondary): White background, Emerald border, Emerald text. Same dimensions.
+- List Items: Height: 64px, left icon/avatar: 40px circle, right chevron or amount, separator: 1px #E2E8F0 with 16px left inset. Tap: subtle gray highlight overlay.
+- Pills/Chips: border-radius: 100px (full round), padding: 8px 16px, border: 1.5px solid #E2E8F0. Selected: Emerald background, white text. Unselected: white background, Text Secondary.
+- Modals/Bottom Sheets: Slide from bottom, border-radius: 24px (top-left, top-right), drag handle: 40px × 4px rounded bar centered at top. Background overlay: black 40% opacity. Drag to dismiss.
+- Progress Bars: Height: 8px, border-radius: 4px, background track: #E2E8F0, fill: Emerald (or Amber/Danger based on percentage). Animated on mount.
+- Toast Notifications: Slide from top, border-radius: 12px, shadow, auto-dismiss after 3 seconds. Success: Emerald tint. Error: Danger tint. Info: Blue tint.
+</components_library>
+
+<navigation_bar>
+The anchor:
+
+- Style: Fixed bottom tab bar, white background, top border: 1px solid #E2E8F0
+- Height: 64px + safe area bottom padding
+- Icons: Lucide icon set — Outline style (inactive), Filled style (active)
+- Active State: Emerald filled icon + small Emerald dot indicator (6px circle) positioned 4px above icon + Emerald label text
+- Inactive State: Outline icon in #94A3B8 + label in #94A3B8
+- Center FAB: 56px diameter Emerald (#10B981) circle, white "+" icon (24px), elevated 16px above tab bar surface. Shadow: 0 4px 12px rgba(16, 185, 129, 0.3) — Emerald-tinted shadow for brand cohesion.
+- Label: Show text labels below icons (10px, Medium weight). Labels: "Home", "Stats", "", "Goals", "Profile"
+- Animation: Active icon transitions from outline to filled with a subtle scale bounce (1.0 → 1.15 → 1.0, 200ms spring)
+</navigation_bar>
+
+<global_interactions>
+Everything responds to touch:
+
+Loading States: Skeleton screens with shimmer effect (left-to-right gradient sweep animation). Skeleton shapes match the actual content layout. Never use spinning loaders. Shimmer color: linear gradient from #E2E8F0 → #F1F5F9 → #E2E8F0.
+Pull to Refresh: Custom animation — Emerald circular spinner that morphs from the pull gesture. Smooth spring-back on release.
+Errors: Toast notification slides from top with Danger red left accent bar. Auto-dismiss in 4 seconds. Includes retry action button when applicable. Copy example: "Oops, couldn't save that. Try again?"
+Success: Smooth checkmark animation (draw-on effect, 400ms) with haptic success feedback. For big wins (budget goal met, streak milestone): subtle screen-wide Emerald glow pulse + "🎉" emoji float animation.
+Empty States: Custom illustrations + encouraging copy + primary action CTA. Never show blank screens. Example: "No transactions yet — your journey starts with one tap! ✨"
+Network Status: Subtle top banner if offline: "You're offline — don't worry, everything saves locally 💾". Auto-dismiss when connection returns.
+</global_interactions>
+
+<motion_principles>
+Mobile-first physics:
+
+1. Response time < 100ms for all touch feedback (glow, highlight)
+2. Micro-animations: 200-300ms (button press, icon morph, toggle switch)
+3. Screen transitions: 300-400ms with spring physics (damping: 20, stiffness: 90)
+4. Chart/progress animations: 500-800ms with easeOut curve, triggered on mount/visibility
+5. Staggered list entrance: 50ms delay between items, fade + translateY(20px → 0)
+6. Bottom sheet spring: overdamped spring for natural feel when sliding up
+7. Skeleton shimmer: Continuous 1.5s loop, linear timing
+
+Forbidden:
+- Hover effects (Phone has no cursor!)
+- Tiny links or text-only tap targets (Must be touchable areas ≥ 44x44px)
+- Horizontal scroll inside vertical scroll without snap-to-item behavior
+- Jarring opacity jumps (Always animate opacity transitions)
+- Layout shifts after content loads (Skeleton prevents this)
+- Scroll hijacking or custom scroll physics
+- Autoplay videos or sounds without user consent
+</motion_principles>
+
+<daily_reminder_notification>
+Habit-forming nudge system:
+
+- Default Time: 9:00 PM local time (configurable in Settings)
+- Notification Style: Local push notification (no server needed)
+- Copy Rotation (randomly selected each day):
+  - "Hey! 📝 Don't forget to log today's expenses. It takes 5 seconds!"
+  - "Your streak is at 15 days! 🔥 Keep it alive — log your expenses now."
+  - "Quick check-in: how did you spend today? 💰"
+  - "You're doing great this month! 👏 Tap to log today's spending."
+- Tap Action: Opens directly to Quick Add Expense bottom sheet
+- Smart Logic: If user already logged an expense today, change copy to: "✅ Already logged today — nice discipline! See your stats?"
+- Respect: User can fully disable reminders. No spammy re-enable prompts.
+</daily_reminder_notification>
+
+<technical_architecture>
+Stack:
+- Framework: React Native (TypeScript) — Single codebase for iOS & Android
+- Navigation: React Navigation v7 (Native Stack + Bottom Tabs)
+- Styling: NativeWind v4 (Tailwind CSS for React Native) — Utility-first, consistent design tokens
+- Animation: React Native Reanimated 3 — 60fps native thread animations, spring physics, gesture handler integration
+- Gesture Handling: React Native Gesture Handler — Swipe actions, drag-to-dismiss, pull-to-refresh
+- Icons: Lucide React Native — Clean, consistent, outline/filled icon pairs
+- Charts: React Native Skia + Victory Native — Hardware-accelerated, smooth chart rendering
+- State Management: Zustand — Lightweight, scalable, zero boilerplate
+- Local Database: React Native SQLite Storage — Structured expense data with fast queries
+- Async Storage: @react-native-async-storage — For preferences, settings, streak data
+- Notifications: react-native-push-notification (local) — Daily reminder system
+- Biometric: react-native-biometrics — Face ID, Touch ID, Fingerprint
+- Encryption: react-native-encrypted-storage — AES-256 for sensitive financial data
+
+Performance Requirements:
+- App launch to interactive: < 2 seconds
+- No layout shift on load (skeleton screens pre-match content dimensions)
+- Touch event handlers use passive listeners
+- Image optimization: WebP format, lazy loading
+- List virtualization: FlatList with windowSize optimization for long transaction lists
+- Memory: No memory leaks from animation listeners (proper cleanup on unmount)
+
+Responsive Behavior:
+- Mobile Portrait: Primary view — all layouts optimized for this
+- Mobile Landscape: Adapted grid for charts and statistics
+- Tablet: Split view layout (Master-Detail) — transaction list on left, detail on right
+</technical_architecture>
+
+<data_strategy>
+<storage>
+Local-First Architecture:
+- SQLite for structured data (transactions, budgets, categories, achievements)
+- AsyncStorage for app preferences (currency, reminder time, theme)
+- Encrypted Storage for sensitive data (auth tokens, PIN hash)
+- All data lives on-device. No cloud servers. Zero latency data access.
+- Export functionality: CSV and PDF generation for manual backup
+- Data schema supports future cloud sync if needed (UUID primary keys, timestamps)
+</storage>
+
+<auth_security>
+Multi-layer Security:
+- First-time Auth: Google OAuth 2.0 / Apple Sign-In (identity verification)
+- App Lock: Biometric (Face ID / Fingerprint) on every app open
+- Fallback: 6-digit PIN with secure hash storage
+- Encryption: AES-256 for all financial data at rest
+- Session: Secure token storage in encrypted keychain
+- Auto-lock: App locks immediately when backgrounded
+- No data transmission: All financial data stays local — no server calls, no analytics on spending data
+</auth_security>
+</data_strategy>
+
+<credits_and_branding>
+<developer_signature>Made with ❤️ by tamadev © 2025</developer_signature>
+<copyright_year>2025</copyright_year>
+<placement>
+- Splash Screen: Bottom center, white text on Emerald background, 12px, opacity 0.7
+- About Page: Centered below app logo and version number, Text Secondary color, 14px
+- Settings Footer: Subtle, at the very bottom of the settings scroll, 12px, Text Secondary
+</placement>
+</credits_and_branding>
+
+<quality_checklist>
+Before this is complete, verify:
+□ Are ALL touch targets ≥ 44x44px?
+□ Is text readable outdoors (high contrast, minimum 16px body)?
+□ Is navigation reachable with one thumb (bottom 60% of screen)?
+□ Do ALL buttons provide visual glow feedback on press?
+□ Are "Back" gestures intuitive (swipe from left edge)?
+□ Is the bottom safe area (Home indicator) respected on all screens?
+□ No "Hover" logic anywhere in the codebase?
+□ Is Dark mode architecture prepared (color tokens, not hardcoded)?
+□ Do skeleton screens match actual content layout?
+□ Are list items virtualized for performance?
+□ Does the FAB remain accessible on all scrollable screens?
+□ Are haptics implemented for key interactions?
+□ Is offline functionality fully working (local-first)?
+□ Are financial amounts formatted with proper currency locale?
+□ Do charts animate smoothly on mount?
+□ Is biometric lock triggered on app background/foreground?
+□ Are empty states designed with illustrations and CTAs?
+□ Would this get featured on the App Store? Would Tim Cook smile?
+</quality_checklist>
+
+Build this. Make it feel like a native app, not a website.
