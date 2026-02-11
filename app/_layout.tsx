@@ -12,6 +12,8 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import { initDatabase } from '@/lib/db';
 import { View } from 'react-native';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,35 +32,39 @@ export default function RootLayout() {
     async function prepare() {
       try {
         await initDatabase();
-        setDbReady(true);
       } catch (e) {
         console.warn('Database init failed', e);
+      } finally {
+        setDbReady(true);
       }
     }
     prepare();
   }, []);
 
   const onLayoutRootView = useCallback(async () => {
-    if ((fontsLoaded || fontError) && dbReady) {
+    if (fontsLoaded && dbReady) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, dbReady]);
+  }, [fontsLoaded, dbReady]);
 
-  if ((!fontsLoaded && !fontError) || !dbReady) {
+  if (!fontsLoaded || !dbReady) {
     return null;
   }
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="splash" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="auth" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="dark" />
-    </View>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="splash" />
+            <Stack.Screen name="onboarding" />
+            <Stack.Screen name="auth" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="dark" />
+        </View>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
-

@@ -2,6 +2,7 @@ import { openDatabase } from './db';
 import { AchievementDefinition, UserAchievement } from '@/types/database';
 import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 
 export const ACHIEVEMENT_KEYS = {
   FIRST_STEP: 'first_step',
@@ -118,6 +119,9 @@ export async function checkAchievements() {
         Crypto.randomUUID(), userId, def.id, now, 100
       );
       newUnlocks.push(def.name);
+      
+      // Success Haptics
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   }
 

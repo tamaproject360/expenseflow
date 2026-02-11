@@ -1,16 +1,28 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Alert, Switch, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '@/constants/theme';
 import { User, Bell, Shield, Moon, Download, LogOut, ChevronRight, Info, Trash2 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { openDatabase, resetDatabase } from '@/lib/db';
-import { UserSettings } from '@/types/database';
+import { UserSettings, Expense, Category } from '@/types/database';
 import * as Linking from 'expo-linking';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -26,6 +38,95 @@ export default function ProfileScreen() {
       if (settings) setUserSettings(settings);
     }
   };
+
+  const handleExportData = async () => {
+    try {
+      setLoading(true);
+      const db = await openDatabase();
+      const userId = await AsyncStorage.getItem('user_id');
+      
+      // Get all data
+      const expenses = await db.getAllAsync<Expense>('SELECT * FROM expenses WHERE user_id = ? ORDER BY expense_date DESC', [userId]);
+      const categories = await db.getAllAsync<Category>('SELECT * FROM categories');
+      const catMap = new Map(categories.map(c => [c.id, c.name]));
+
+      // Create CSV Header
+      let csv = 'Date,Category,Amount,Note,ID\n';
+
+      // Add Rows
+      expenses.forEach(exp => {
+        const catName = catMap.get(exp.category_id) || 'Unknown';
+        const cleanNote = exp.note ? exp.note.replace(/,/g, ' ') : ''; // Basic CSV escaping
+        csv += `${exp.expense_date},${catName},${exp.amount},${cleanNote},${exp.id}\n`;
+      });
+
+      // Save to file
+      const fileName = `ExpenseFlow_Export_${new Date().toISOString().split('T')[0]}.csv`;
+      const filePath = `${FileSystem.documentDirectory}${fileName}`;
+      
+      await FileSystem.writeAsStringAsync(filePath, csv, { encoding: FileSystem.EncodingType.UTF8 });
+
+      // Share
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(filePath);
+      } else {
+        Alert.alert('Success', `File saved to ${filePath}`);
+      }
+
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to export data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleReminders = async (value: boolean) => {
+    try {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Enable notifications in settings to use this feature.');
+        return;
+      }
+
+      if (value) {
+        // Schedule daily notification
+        await Notifications.cancelAllScheduledNotificationsAsync();
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "📝 Track your spending!",
+            body: "Don't forget to log your expenses for today.",
+          },
+          trigger: {
+            hour: 21, // 9 PM
+            minute: 0,
+            repeats: true,
+          } as any,
+        });
+      } else {
+        await Notifications.cancelAllScheduledNotificationsAsync();
+      }
+
+      // Update DB
+      const db = await openDatabase();
+      const userId = await AsyncStorage.getItem('user_id');
+      await db.runAsync(
+        'UPDATE user_settings SET daily_reminder_enabled = ? WHERE user_id = ?',
+        value ? 1 : 0,
+        userId
+      );
+      
+      // Update local state
+      if (userSettings) {
+        setUserSettings({ ...userSettings, daily_reminder_enabled: value });
+      }
+
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to update reminder settings');
+    }
+  };
+
 
   const handleLogout = async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -109,15 +210,12 @@ export default function ProfileScreen() {
             <View style={styles.separator} />
             <SettingItem 
                 icon={Bell} 
-                label="Daily Reminder" 
+                label="Daily Reminder (9 PM)" 
                 showChevron={false}
                 trailing={
                     <Switch 
                         value={!!userSettings?.daily_reminder_enabled} 
-                        onValueChange={(val) => {
-                            // Logic to update DB would go here
-                            Alert.alert('Info', 'Notification settings coming soon!');
-                        }}
+                        onValueChange={handleToggleReminders}
                         trackColor={{ false: Colors.border, true: Colors.primary }}
                     />
                 }
@@ -141,7 +239,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>DATA</Text>
           <View style={styles.card}>
-            <SettingItem icon={Download} label="Export Data (CSV)" onPress={() => Alert.alert('Info', 'Export feature coming soon!')} />
+            <SettingItem icon={Download} label={loading ? "Exporting..." : "Export Data (CSV)"} onPress={handleExportData} disabled={loading} />
             <View style={styles.separator} />
             <SettingItem icon={Trash2} label="Reset Statistics" onPress={handleResetData} isDestructive />
           </View>

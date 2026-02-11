@@ -3,9 +3,14 @@ import { type SQLiteDatabase } from 'expo-sqlite';
 
 export const DATABASE_NAME = 'expenseflow.db';
 
-export async function openDatabase(): Promise<SQLiteDatabase> {
-  const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
-  return db;
+let dbInstance: SQLite.SQLiteDatabase | null = null;
+
+export async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
+  if (dbInstance) {
+    return dbInstance;
+  }
+  dbInstance = await SQLite.openDatabaseAsync(DATABASE_NAME);
+  return dbInstance;
 }
 
 export async function initDatabase() {

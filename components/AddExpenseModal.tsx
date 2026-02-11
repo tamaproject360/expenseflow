@@ -11,6 +11,7 @@ import {
   Vibration,
   Platform,
   Animated,
+  Alert
 } from 'react-native';
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '@/constants/theme';
 import { X, Calendar, Delete } from 'lucide-react-native';
@@ -19,6 +20,10 @@ import { openDatabase } from '@/lib/db';
 import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Category } from '@/types/database';
+import { checkAndUpdateStreak } from '@/lib/streaks';
+import { checkAchievements } from '@/lib/achievements';
+import * as Haptics from 'expo-haptics';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface AddExpenseModalProps {
   visible: boolean;
@@ -34,6 +39,8 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   
   const slideAnim = useRef(new Animated.Value(height)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -52,10 +59,12 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
           toValue: 1,
           duration: 200,
           useNativeDriver: true,
+          useNativeDriver: true,
         })
       ]).start();
       setAmount('0');
       setNote('');
+      setDate(new Date());
       setSelectedCategory(null);
     } else {
       Animated.parallel([
@@ -102,48 +111,54 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
   };
 
   const handleSave = async () => {
-    if (!selectedCategory || amount === '0') return;
-    
-    setLoading(true);
-    Vibration.vibrate(20); // Medium haptic for success
-    
+    if (!amount || parseFloat(amount) <= 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      // Shake animation could go here
+      return;
+    }
+
     try {
+      setLoading(true);
       const db = await openDatabase();
       const userId = await AsyncStorage.getItem('user_id');
       
-      if (!userId) throw new Error('No user found');
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
 
-      const now = new Date().toISOString();
-      
       await db.runAsync(
-        `INSERT INTO expenses (id, user_id, category_id, amount, note, expense_date, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        'INSERT INTO expenses (id, user_id, category_id, amount, note, expense_date) VALUES (?, ?, ?, ?, ?, ?)',
         Crypto.randomUUID(),
         userId,
         selectedCategory,
         parseFloat(amount),
         note,
-        now.split('T')[0], // YYYY-MM-DD
-        now,
-        now
+        date.toISOString().split('T')[0] // Store as YYYY-MM-DD
       );
 
-      // Update streak if needed (simplified logic)
-      const today = now.split('T')[0];
-      await db.runAsync(
-        `UPDATE user_settings 
-         SET last_logged_date = ?, 
-             current_streak = CASE WHEN last_logged_date = date(?, '-1 day') THEN current_streak + 1 ELSE current_streak END
-         WHERE user_id = ?`,
-        today, today, userId
-      );
+      // Update Streak
+      await checkAndUpdateStreak();
+      
+      // Check Achievements
+      const unlocked = await checkAchievements();
+      if (unlocked.length > 0) {
+        Alert.alert('Achievement Unlocked! 🏆', `You've earned: ${unlocked.join(', ')}`);
+      }
 
-      // Reset and close
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onSave();
       onClose();
       
-    } catch (e) {
-      console.error('Failed to save expense', e);
+      // Reset form
+      setAmount('');
+      setNote('');
+      setDate(new Date());
+      setSelectedCategory(categories[0]?.id || '');
+      
+    } catch (error) {
+      console.error(error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);
     }
@@ -163,15 +178,25 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
         <View style={styles.handle} />
         
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <TouchableOpacity 
+            onPress={onClose} 
+            style={styles.closeButton}
+            accessibilityLabel="Close modal"
+            accessibilityRole="button"
+            accessibilityHint="Closes the expense entry screen"
+          >
             <X size={24} color={Colors.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.title}>New Expense</Text>
+          <Text style={styles.title} accessibilityRole="header">New Expense</Text>
           <View style={{ width: 40 }} /> 
         </View>
 
         {/* Amount Display */}
-        <View style={styles.amountContainer}>
+        <View 
+          style={styles.amountContainer}
+          accessibilityLabel={`Current amount: ${amount} Rupiah`}
+          accessibilityRole="adjustable"
+        >
           <Text style={styles.currencySymbol}>Rp</Text>
           <Text style={styles.amountText}>
             {new Intl.NumberFormat('id-ID').format(parseInt(amount))}
@@ -180,7 +205,7 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
 
         {/* Category Selector */}
         <View style={styles.categoryContainer}>
-          <Text style={styles.sectionLabel}>CATEGORY</Text>
+          <Text style={styles.sectionLabel} accessibilityRole="header">CATEGORY</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
             {categories.map((cat) => (
               <TouchableOpacity
@@ -193,6 +218,9 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
                   setSelectedCategory(cat.id);
                   Vibration.vibrate(5);
                 }}
+                accessibilityLabel={`${cat.name} category`}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: selectedCategory === cat.id }}
               >
                 <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
                 <Text style={[
@@ -212,6 +240,8 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
             placeholderTextColor={Colors.textSecondary}
             value={note}
             onChangeText={setNote}
+            accessibilityLabel="Expense note"
+            accessibilityHint="Optional description for this expense"
           />
         </View>
 
@@ -222,17 +252,37 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
               key={num}
               style={styles.key}
               onPress={() => handleNumberPress(num.toString())}
+              accessibilityLabel={num.toString()}
+              accessibilityRole="button"
             >
               <Text style={styles.keyText}>{num}</Text>
             </TouchableOpacity>
           ))}
-          <TouchableOpacity style={styles.key} onPress={() => {/* Date picker logic */}}>
+          <TouchableOpacity 
+            style={styles.key} 
+            onPress={() => setShowDatePicker(true)}
+            accessibilityLabel="Change date"
+            accessibilityRole="button"
+          >
             <Calendar size={24} color={Colors.textSecondary} />
+            {date.toDateString() !== new Date().toDateString() && (
+              <View style={styles.dateBadge} />
+            )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.key} onPress={() => handleNumberPress('0')}>
+          <TouchableOpacity 
+            style={styles.key} 
+            onPress={() => handleNumberPress('0')}
+            accessibilityLabel="0"
+            accessibilityRole="button"
+          >
             <Text style={styles.keyText}>0</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.key} onPress={handleDelete}>
+          <TouchableOpacity 
+            style={styles.key} 
+            onPress={handleDelete}
+            accessibilityLabel="Delete last digit"
+            accessibilityRole="button"
+          >
             <Delete size={24} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -246,12 +296,30 @@ export default function AddExpenseModal({ visible, onClose, onSave }: AddExpense
             ]}
             onPress={handleSave}
             disabled={!selectedCategory || amount === '0' || loading}
+            accessibilityLabel="Save Expense"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !selectedCategory || amount === '0' || loading }}
           >
             <Text style={styles.saveButtonText}>
-              {loading ? 'Saving...' : 'Save Expense'}
+              {loading ? 'Saving...' : `Save for ${date.toLocaleDateString()}`}
             </Text>
           </TouchableOpacity>
         </View>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) {
+                setDate(selectedDate);
+              }
+            }}
+            maximumDate={new Date()}
+          />
+        )}
 
       </Animated.View>
     </View>
@@ -376,8 +444,18 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: Colors.textPrimary,
   },
+  dateBadge: {
+    position: 'absolute',
+    top: 12,
+    right: '30%',
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.primary,
+  },
   footer: {
     padding: Spacing.lg,
+
     marginTop: 'auto',
     marginBottom: Platform.OS === 'ios' ? 20 : 0,
   },
