@@ -33,3 +33,61 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Android
+android/
+!android/.gitkeep
+*.apk
+*.aab
+*.ap_
+*.dex
+build/
+captures/
+.gradle/
+local.properties
+*.iml
+.idea/
+.cxx/
+*.keystore
+
+# iOS
+ios/
+!ios/.gitkeep
+*.ipa
+*.dSYM.zip
+*.dSYM
+DerivedData/
+*.xcworkspace
+!default.xcworkspace
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# EAS
+.eas/
+eas-build-pre-install.sh
+eas-build-post-install.sh
+
+# Service account keys
+service-account-key.json
+google-services.json
+GoogleService-Info.plist
+
