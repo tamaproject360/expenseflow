@@ -6,16 +6,20 @@ import {
   SafeAreaView,
   TouchableOpacity,
   RefreshControl,
+  Animated,
 } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants/theme';
 import { Card } from '@/components/Card';
-import { supabase } from '@/lib/supabase';
+import { openDatabase } from '@/lib/db';
 import { Expense, UserSettings } from '@/types/database';
 import { TrendingDown, TrendingUp, Clock, Flame } from 'lucide-react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -24,56 +28,81 @@ export default function HomeScreen() {
   const [todaySpent, setTodaySpent] = useState(0);
   const [weekSpent, setWeekSpent] = useState(0);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Animated values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+      // Start entry animation
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }, [])
+  );
 
   const loadData = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await AsyncStorage.getItem('user_id');
+      if (!userId) return;
 
-      const { data: settings } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const db = await openDatabase();
+
+      // Fetch User Settings
+      const settings = await db.getFirstAsync<UserSettings>(
+        'SELECT * FROM user_settings WHERE user_id = ?',
+        [userId]
+      );
 
       if (settings) {
         setUserSettings(settings);
       }
 
+      // Calculate dates
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const { data: expensesData } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('expense_date', startOfMonth.toISOString().split('T')[0])
-        .order('expense_date', { ascending: false })
-        .limit(5);
+      const startOfMonthStr = startOfMonth.toISOString().split('T')[0];
 
-      if (expensesData) {
+      // Fetch Expenses
+      const expensesData = await db.getAllAsync<Expense>(
+        'SELECT * FROM expenses WHERE user_id = ? AND expense_date >= ? ORDER BY expense_date DESC LIMIT 5',
+        [userId, startOfMonthStr]
+      );
+
+      const allMonthExpenses = await db.getAllAsync<Expense>(
+         'SELECT amount, expense_date FROM expenses WHERE user_id = ? AND expense_date >= ?',
+         [userId, startOfMonthStr]
+      );
+
+      if (allMonthExpenses) {
         setExpenses(expensesData);
 
-        const total = expensesData.reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0);
+        const total = allMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0);
         setTotalSpent(total);
 
         const today = new Date().toISOString().split('T')[0];
-        const todayTotal = expensesData
+        const todayTotal = allMonthExpenses
           .filter((exp) => exp.expense_date === today)
-          .reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0);
+          .reduce((sum, exp) => sum + exp.amount, 0);
         setTodaySpent(todayTotal);
 
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
-        const weekTotal = expensesData
+        const weekTotal = allMonthExpenses
           .filter((exp) => new Date(exp.expense_date) >= weekAgo)
-          .reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0);
+          .reduce((sum, exp) => sum + exp.amount, 0);
         setWeekSpent(weekTotal);
       }
     } catch (error) {
@@ -112,7 +141,7 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View style={styles.header}>
-          <Animated.Text entering={FadeIn} style={styles.greeting}>
+          <Animated.Text style={[styles.greeting, { opacity: fadeAnim }]}>
             {getGreeting()}, {userSettings?.display_name || 'User'} 👋
           </Animated.Text>
           <Text style={styles.month}>
@@ -120,7 +149,7 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        <Animated.View entering={FadeInDown.delay(100)} style={styles.metricsCard}>
+        <Animated.View style={[styles.metricsCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <Card>
             <Text style={styles.metricLabel}>Total Spending This Month</Text>
             <Text style={styles.metricValue}>{formatCurrency(totalSpent)}</Text>
@@ -133,7 +162,7 @@ export default function HomeScreen() {
           </Card>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(200)} style={styles.quickStats}>
+        <Animated.View style={[styles.quickStats, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <Card style={styles.statCard}>
             <Clock color={Colors.textSecondary} size={20} />
             <Text style={styles.statLabel}>Today</Text>
@@ -152,8 +181,11 @@ export default function HomeScreen() {
         </Animated.View>
 
         {userSettings && userSettings.current_streak > 0 && (
-          <Animated.View entering={FadeInDown.delay(300)}>
-            <TouchableOpacity activeOpacity={0.8}>
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+            <TouchableOpacity 
+              activeOpacity={0.8}
+              onPress={() => router.push('/achievements')}
+            >
               <Card style={styles.streakCard}>
                 <Flame color={Colors.accent} size={24} />
                 <View style={styles.streakContent}>
@@ -169,10 +201,10 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        <Animated.View entering={FadeInDown.delay(400)} style={styles.section}>
+        <Animated.View style={[styles.section, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Transactions</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/transactions')}>
               <Text style={styles.seeAll}>See All →</Text>
             </TouchableOpacity>
           </View>
@@ -186,8 +218,13 @@ export default function HomeScreen() {
             expenses.map((expense, index) => (
               <Animated.View
                 key={expense.id}
-                entering={FadeInDown.delay(500 + index * 50)}
-                style={styles.transactionItem}
+                style={[
+                    styles.transactionItem,
+                    {
+                        opacity: fadeAnim,
+                        transform: [{ translateY: slideAnim }]
+                    }
+                ]}
               >
                 <View style={styles.transactionIcon}>
                   <Text style={styles.categoryEmoji}>🛒</Text>
@@ -202,7 +239,7 @@ export default function HomeScreen() {
                   </Text>
                 </View>
                 <Text style={styles.transactionAmount}>
-                  -{formatCurrency(parseFloat(expense.amount.toString()))}
+                  -{formatCurrency(expense.amount)}
                 </Text>
               </Animated.View>
             ))

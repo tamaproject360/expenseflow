@@ -1,12 +1,19 @@
 import { Tabs } from 'expo-router';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Home, BarChart3, Target, User } from 'lucide-react-native';
-import { Colors, Shadow, Spacing } from '@/constants/theme';
-import { Plus } from 'lucide-react-native';
+import { Home, BarChart3, Target, User, Plus } from 'lucide-react-native';
+import { Colors, Shadow } from '@/constants/theme';
 import { useState } from 'react';
+import AddExpenseModal from '@/components/AddExpenseModal';
+import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 export default function TabLayout() {
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const router = useRouter();
+
+  const handleTabPress = () => {
+    Haptics.selectionAsync();
+  };
 
   return (
     <>
@@ -37,6 +44,9 @@ export default function TabLayout() {
             title: 'Home',
             tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
           }}
+          listeners={{
+            tabPress: handleTabPress,
+          }}
         />
         <Tabs.Screen
           name="stats"
@@ -44,16 +54,23 @@ export default function TabLayout() {
             title: 'Stats',
             tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
           }}
+          listeners={{
+            tabPress: handleTabPress,
+          }}
         />
         <Tabs.Screen
           name="add"
           options={{
             title: '',
             tabBarIcon: () => null,
-            tabBarButton: () => (
+            tabBarButton: (props) => (
               <TouchableOpacity
+                {...props}
                 style={styles.fab}
-                onPress={() => setShowAddExpense(true)}
+                onPress={(e) => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setShowAddExpense(true);
+                }}
                 activeOpacity={0.8}
               >
                 <Plus color={Colors.surface} size={24} strokeWidth={3} />
@@ -67,6 +84,9 @@ export default function TabLayout() {
             title: 'Goals',
             tabBarIcon: ({ color, size }) => <Target color={color} size={size} />,
           }}
+          listeners={{
+            tabPress: handleTabPress,
+          }}
         />
         <Tabs.Screen
           name="profile"
@@ -74,8 +94,20 @@ export default function TabLayout() {
             title: 'Profile',
             tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
           }}
+          listeners={{
+            tabPress: handleTabPress,
+          }}
         />
       </Tabs>
+      
+      <AddExpenseModal 
+        visible={showAddExpense} 
+        onClose={() => setShowAddExpense(false)}
+        onSave={() => {
+          setShowAddExpense(false);
+          router.replace('/(tabs)');
+        }}
+      />
     </>
   );
 }
@@ -95,3 +127,4 @@ const styles = StyleSheet.create({
     ...Shadow.fab,
   },
 });
+

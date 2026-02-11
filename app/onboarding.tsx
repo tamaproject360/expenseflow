@@ -1,143 +1,126 @@
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Dimensions,
+  Animated,
+  FlatList,
+} from 'react-native';
 import { useState, useRef } from 'react';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-  useAnimatedStyle,
-  interpolate,
-} from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants/theme';
+import { CircleDollarSign, BarChart3, Trophy } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-const slides = [
+const SLIDES = [
   {
-    id: 1,
-    emoji: '📱',
+    id: '1',
     title: 'Track Every Penny',
-    description: 'Log expenses in under 5 seconds. Fast, simple, satisfying.',
+    description: 'Log expenses in under 5 seconds. Fast, simple, and satisfying.',
+    icon: <CircleDollarSign size={80} color={Colors.primary} />,
   },
   {
-    id: 2,
-    emoji: '📊',
+    id: '2',
     title: 'See Where It Goes',
     description: 'Beautiful insights that make your spending crystal clear.',
+    icon: <BarChart3 size={80} color={Colors.accent} />,
   },
   {
-    id: 3,
-    emoji: '🏆',
+    id: '3',
     title: 'Build Money Habits',
     description: 'Earn streaks and achievements. Consistency has never been this fun.',
+    icon: <Trophy size={80} color={Colors.primary} />,
   },
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollX = useSharedValue(0);
-  const scrollViewRef = useRef<Animated.ScrollView>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const slidesRef = useRef<FlatList>(null);
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
+  const viewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems && viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  }).current;
 
-  const handleGetStarted = () => {
-    router.replace('/auth');
-  };
+  const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
-  const handleSkip = () => {
-    router.replace('/auth');
+  const scrollTo = () => {
+    if (currentIndex < SLIDES.length - 1) {
+      slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
+    } else {
+      router.replace('/auth');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
+      <View style={styles.skipContainer}>
+        <TouchableOpacity onPress={() => router.replace('/auth')}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
 
-      <Animated.ScrollView
-        ref={scrollViewRef}
+      <FlatList
+        data={SLIDES}
+        renderItem={({ item }) => (
+          <View style={styles.slide}>
+            <View style={styles.iconContainer}>{item.icon}</View>
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.description}>{item.description}</Text>
+          </View>
+        )}
         horizontal
-        pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / width);
-          setCurrentIndex(index);
-        }}
-      >
-        {slides.map((slide, index) => (
-          <SlideItem key={slide.id} slide={slide} index={index} scrollX={scrollX} />
-        ))}
-      </Animated.ScrollView>
+        pagingEnabled
+        bounces={false}
+        keyExtractor={(item) => item.id}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={32}
+        onViewableItemsChanged={viewableItemsChanged}
+        viewabilityConfig={viewConfig}
+        ref={slidesRef}
+      />
 
       <View style={styles.footer}>
-        <View style={styles.pagination}>
-          {slides.map((_, index) => {
-            const dotStyle = useAnimatedStyle(() => {
-              const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
-              const dotWidth = interpolate(scrollX.value, inputRange, [8, 24, 8]);
-              const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3]);
-
-              return {
-                width: dotWidth,
-                opacity,
-              };
+        <View style={styles.paginator}>
+          {SLIDES.map((_, i) => {
+            const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
+            const dotWidth = scrollX.interpolate({
+              inputRange,
+              outputRange: [10, 20, 10],
+              extrapolate: 'clamp',
+            });
+            const opacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.3, 1, 0.3],
+              extrapolate: 'clamp',
             });
 
             return (
               <Animated.View
-                key={index}
-                style={[styles.dot, dotStyle, index === currentIndex && styles.activeDot]}
+                key={i}
+                style={[styles.dot, { width: dotWidth, opacity }]}
               />
             );
           })}
         </View>
 
-        {currentIndex === slides.length - 1 && (
-          <TouchableOpacity style={styles.button} onPress={handleGetStarted} activeOpacity={0.8}>
-            <Text style={styles.buttonText}>Get Started →</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity style={styles.button} onPress={scrollTo}>
+          <Text style={styles.buttonText}>
+            {currentIndex === SLIDES.length - 1 ? 'Get Started' : 'Next'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
-  );
-}
-
-function SlideItem({
-  slide,
-  index,
-  scrollX,
-}: {
-  slide: typeof slides[0];
-  index: number;
-  scrollX: Animated.SharedValue<number>;
-}) {
-  const animatedStyle = useAnimatedStyle(() => {
-    const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
-    const translateY = interpolate(scrollX.value, inputRange, [100, 0, 100]);
-    const opacity = interpolate(scrollX.value, inputRange, [0, 1, 0]);
-
-    return {
-      transform: [{ translateY }],
-      opacity,
-    };
-  });
-
-  return (
-    <View style={styles.slide}>
-      <Animated.View style={[styles.content, animatedStyle]}>
-        <View style={styles.emojiContainer}>
-          <Text style={styles.emoji}>{slide.emoji}</Text>
-        </View>
-        <Text style={styles.title}>{slide.title}</Text>
-        <Text style={styles.description}>{slide.description}</Text>
-      </Animated.View>
-    </View>
   );
 }
 
@@ -146,13 +129,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.canvas,
   },
-  skipButton: {
-    position: 'absolute',
-    top: 60,
-    right: Spacing.lg,
-    zIndex: 10,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+  skipContainer: {
+    alignItems: 'flex-end',
+    padding: Spacing.lg,
   },
   skipText: {
     ...Typography.body,
@@ -160,35 +139,26 @@ const styles = StyleSheet.create({
   },
   slide: {
     width,
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
+    padding: Spacing.xl,
+    paddingTop: 60,
   },
-  content: {
-    alignItems: 'center',
-    paddingBottom: 100,
-  },
-  emojiContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  iconContainer: {
+    marginBottom: 40,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.xl,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  emoji: {
-    fontSize: 64,
+    shadowRadius: 20,
+    elevation: 10,
   },
   title: {
     ...Typography.h1,
-    fontSize: 28,
     textAlign: 'center',
     marginBottom: Spacing.md,
     color: Colors.textPrimary,
@@ -197,30 +167,22 @@ const styles = StyleSheet.create({
     ...Typography.body,
     textAlign: 'center',
     color: Colors.textSecondary,
-    lineHeight: 24,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
     paddingHorizontal: Spacing.lg,
   },
-  pagination: {
+  footer: {
+    padding: Spacing.xl,
+  },
+  paginator: {
     flexDirection: 'row',
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
-    height: 8,
   },
   dot: {
-    height: 8,
-    borderRadius: 4,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: Colors.primary,
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: Colors.primary,
+    marginHorizontal: 8,
   },
   button: {
     backgroundColor: Colors.primary,

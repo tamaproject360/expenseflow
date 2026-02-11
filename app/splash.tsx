@@ -1,48 +1,54 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { useEffect } from 'react';
+import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  withSpring,
-  withSequence,
-} from 'react-native-reanimated';
 import { Colors, Typography } from '@/constants/theme';
 
 export default function SplashScreen() {
   const router = useRouter();
-  const logoOpacity = useSharedValue(0);
-  const logoScale = useSharedValue(1);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    logoOpacity.value = withTiming(1, { duration: 600 });
-    logoScale.value = withSequence(
-      withTiming(1, { duration: 600 }),
-      withSpring(1.05, { damping: 10, stiffness: 100 })
-    );
-
-    const timeout = setTimeout(() => {
-      router.replace('/onboarding');
-    }, 1500);
-
-    return () => clearTimeout(timeout);
+    // Sequence: Fade In -> Scale Up -> Navigate
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1.05,
+        friction: 4, // spring effect
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Navigate after animation completes
+      setTimeout(() => {
+        router.replace('/index'); // Go to index to check auth
+      }, 500);
+    });
   }, []);
-
-  const animatedLogoStyle = useAnimatedStyle(() => ({
-    opacity: logoOpacity.value,
-    transform: [{ scale: logoScale.value }],
-  }));
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.logoContainer, animatedLogoStyle]}>
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>💰</Text>
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
+        <View style={styles.logoContainer}>
+          <Text style={styles.logo}>💰</Text>
         </View>
-        <Text style={styles.appName}>ExpenseFlow</Text>
+        <Text style={styles.title}>ExpenseFlow</Text>
       </Animated.View>
-      <Text style={styles.credit}>Made with ❤️ by tamadev © 2025</Text>
+      
+      <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
+        <Text style={styles.footerText}>Made with ❤️ by tamadev © 2025</Text>
+      </Animated.View>
     </View>
   );
 }
@@ -54,34 +60,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoContainer: {
+  content: {
     alignItems: 'center',
   },
-  logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  logoText: {
-    fontSize: 48,
+  logo: {
+    fontSize: 50,
   },
-  appName: {
+  title: {
     ...Typography.h1,
+    color: '#FFFFFF',
     fontSize: 32,
-    color: Colors.surface,
-    fontFamily: 'PlusJakartaSans-Bold',
   },
-  credit: {
+  footer: {
     position: 'absolute',
     bottom: 40,
+  },
+  footerText: {
     ...Typography.caption,
-    fontSize: 12,
-    fontFamily: 'PlusJakartaSans-Medium',
-    color: Colors.surface,
-    opacity: 0.7,
+    color: 'rgba(255,255,255,0.7)',
   },
 });

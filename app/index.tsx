@@ -1,34 +1,36 @@
-import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
-import { supabase } from '@/lib/supabase';
+import { View, ActivityIndicator } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '@/constants/theme';
 
 export default function Index() {
-  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
+  const [hasUser, setHasUser] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session) {
-      router.replace('/(tabs)');
-    } else {
-      router.replace('/splash');
+    try {
+      const userId = await AsyncStorage.getItem('user_id');
+      setHasUser(!!userId);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsReady(true);
     }
   };
 
-  return <View style={styles.container} />;
-}
+  if (!isReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.canvas }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-  },
-});
+  // Declarative redirect is more stable than imperative router.replace in useEffect
+  return <Redirect href={hasUser ? "/(tabs)" : "/auth"} />;
+}

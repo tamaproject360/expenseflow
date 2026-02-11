@@ -1,0 +1,150 @@
+<design_system>
+    <meta>
+        <version>1.0.0</version>
+        <last_updated>2025-02-11</last_updated>
+        <description>ExpenseFlow Design System - Sophisticated, Professional, Mature</description>
+    </meta>
+
+    <colors>
+        <primary>
+            <hex>#10B981</hex>
+            <name>Emerald</name>
+            <usage>Primary actions, active states, success indicators</usage>
+        </primary>
+        <accent>
+            <hex>#F59E0B</hex>
+            <name>Amber</name>
+            <usage>Highlights, streaks, warnings, secondary actions</usage>
+        </accent>
+        <canvas>
+            <hex>#F8FAFB</hex>
+            <name>Off-White</name>
+            <usage>Main application background</usage>
+        </canvas>
+        <surface>
+            <hex>#FFFFFF</hex>
+            <name>White</name>
+            <usage>Card backgrounds, modals, bottom sheets</usage>
+        </surface>
+        <text>
+            <primary>#1A202C</primary>
+            <secondary>#64748B</secondary>
+        </text>
+        <semantic>
+            <danger>#EF4444</danger>
+            <success>#22C55E</success>
+            <border>#E2E8F0</border>
+            <overlay>rgba(0, 0, 0, 0.4)</overlay>
+        </semantic>
+        <categories>
+            <food>#F59E0B</food>
+            <transport>#3B82F6</transport>
+            <shopping>#EC4899</shopping>
+            <entertainment>#8B5CF6</entertainment>
+            <coffee>#92400E</coffee>
+            <health>#EF4444</health>
+            <bills>#64748B</bills>
+            <other>#10B981</other>
+        </categories>
+    </colors>
+
+    <typography>
+        <font_family>
+            <primary>PlusJakartaSans</primary>
+            <weights>
+                <regular>400</regular>
+                <medium>500</medium>
+                <semibold>600</semibold>
+                <bold>700</bold>
+            </weights>
+        </font_family>
+        <styles>
+            <h1>
+                <size>24</size>
+                <line_height>28.8</line_height>
+                <weight>Bold</weight>
+                <letter_spacing>-0.48</letter_spacing>
+            </h1>
+            <h2>
+                <size>20</size>
+                <line_height>24</line_height>
+                <weight>Bold</weight>
+                <letter_spacing>-0.4</letter_spacing>
+            </h2>
+            <body_large>
+                <size>28</size>
+                <line_height>33.6</line_height>
+                <weight>SemiBold</weight>
+            </body_large>
+            <body>
+                <size>16</size>
+                <line_height>24</line_height>
+                <weight>Regular</weight>
+            </body>
+            <button>
+                <size>16</size>
+                <weight>SemiBold</weight>
+            </button>
+            <caption>
+                <size>14</size>
+                <line_height>21</line_height>
+                <weight>Regular</weight>
+            </caption>
+            <label>
+                <size>12</size>
+                <letter_spacing>0.24</letter_spacing>
+                <weight>Medium</weight>
+                <transform>uppercase</transform>
+            </label>
+        </styles>
+    </typography>
+
+    <spacing>
+        <xs>4</xs>
+        <sm>8</sm>
+        <md>16</md>
+        <lg>24</lg>
+        <xl>32</xl>
+        <xxl>40</xxl>
+    </spacing>
+
+    <radius>
+        <sm>12</sm>
+        <md>16</md>
+        <lg>20</lg>
+        <xl>24</xl>
+        <full>100</full>
+    </radius>
+
+    <shadows>
+        <card>
+            <color>#000</color>
+            <offset>0px 2px</offset>
+            <opacity>0.06</opacity>
+            <radius>8px</radius>
+            <elevation>2</elevation>
+        </card>
+        <fab>
+            <color>#10B981</color>
+            <offset>0px 4px</offset>
+            <opacity>0.3</opacity>
+            <radius>12px</radius>
+            <elevation>8</elevation>
+        </fab>
+    </shadows>
+
+    <animations>
+        <library>React Native Animated API (Core)</library>
+        <durations>
+            <fast>200ms</fast>
+            <normal>300ms</normal>
+            <slow>500ms</slow>
+            <chart>800ms</chart>
+        </durations>
+        <interactions>
+            <button_press>Scale 0.96 + Haptic Light</button_press>
+            <screen_transition>Fade + Slide Y</screen_transition>
+            <modal_entry>Spring (Friction 8)</modal_entry>
+        </interactions>
+    </animations>
+</design_system>

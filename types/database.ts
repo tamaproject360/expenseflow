@@ -52,9 +52,9 @@ export interface UserSettings {
   display_name?: string;
   avatar_url?: string;
   currency: string;
-  daily_reminder_enabled: boolean;
+  daily_reminder_enabled: boolean; // stored as 0 or 1 in SQLite, converted to boolean in app
   daily_reminder_time: string;
-  biometric_enabled: boolean;
+  biometric_enabled: boolean; // stored as 0 or 1
   current_streak: number;
   longest_streak: number;
   last_logged_date?: string;
